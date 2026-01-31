@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Block {{ block.block_number }} - QuaiScan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .monospace {
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col">
+    <!-- NAVBAR -->
+    <nav class="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex-shrink-0">
+                    <h1 class="text-2xl font-bold text-blue-600">QuaiScan</h1>
+                </div>
+                
+                <!-- Search Bar -->
+                <div class="flex-1 max-w-2xl mx-8">
+                    <input type="text" 
+                           placeholder="Search by address, transaction hash, or block..." 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                
+                <!-- Links -->
+                <div class="flex space-x-6">
+                    <a href="/" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">Home</a>
+                    <a href="/blocks" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">Blocks</a>
+                    <a href="/transactions" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">Transactions</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+<main class="flex-grow">
+    <!-- HEADER -->
+    <section class="bg-gray-100 py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center space-x-2">
+                <a href="/blocks" class="text-blue-600 hover:text-blue-800">Blocks</a>
+                <span class="text-gray-500">/</span>
+                <span class="text-gray-900 font-semibold">{{ block.block_number }}</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- BLOCK DETAILS -->
+    {% if block %}
+    <section class="py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Block Details</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <div class="py-3 border-b border-gray-200">
+                            <span class="text-sm font-medium text-gray-500">Block Number:</span>
+                            <span class="ml-3 text-sm text-gray-900 font-semibold">{{ block.block_number }}</span>
+                        </div>
+                        <div class="py-3 border-b border-gray-200">
+                            <span class="text-sm font-medium text-gray-500">Timestamp:</span>
+                            <span class="ml-3 text-sm text-gray-900">{{ block.timestamp[:19] if block.timestamp else 'N/A' }}</span>
+                        </div>
+                        <div class="py-3 border-b border-gray-200">
+                            <span class="text-sm font-medium text-gray-500">Transactions:</span>
+                            <span class="ml-3 text-sm text-gray-900">{{ block.tx_count }}</span>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="py-3 border-b border-gray-200">
+                            <span class="text-sm font-medium text-gray-500">Gas Used:</span>
+                            <span class="ml-3 text-sm text-gray-900">{{ "{:,}".format(block.gas_used) if block.gas_used else 'N/A' }}</span>
+                        </div>
+                        <div class="py-3">
+                            <span class="text-sm font-medium text-gray-500">Hash:</span>
+                            <span class="ml-3 text-sm monospace text-gray-900">{{ block.hash|default('N/A') }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TRANSACTIONS IN BLOCK -->
+            {% if block.transactions %}
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-semibold text-gray-900 mb-4">Transactions in this Block</h3>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaction Hash</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">From</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">To</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Value</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for tx in block.transactions[:20] %}
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm monospace">
+                                    <a href="/tx/{{ tx.hash }}" class="text-blue-600 hover:text-blue-800">
+                                        {{ tx.hash[:10] }}...{{ tx.hash[-8:] }}
+                                    </a>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm monospace text-gray-500">
+                                    {{ tx.from[:6] if tx.from else 'N/A' }}...{{ tx.from[-4:] if tx.from else '' }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm monospace text-gray-500">
+                                    {{ tx.to[:6] if tx.to else 'N/A' }}...{{ tx.to[-4:] if tx.to else '' }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ "%.6f"|format((int(tx.value, 16) if tx.value.startswith('0x') else int(tx.value)) / 1e18 if tx.value else 0) }} QUAI
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">
+                                    No transactions in this block
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+    {% else %}
+    <section class="py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="bg-white rounded-lg shadow-md p-6 text-center">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">Block Not Found</h2>
+                <p class="text-gray-600 mb-4">The requested block could not be found.</p>
+                <a href="/blocks" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                    Back to Blocks
+                </a>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+</main>
+    <!-- FOOTER -->
+    <footer class="bg-gray-900 text-white py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p>QuaiScan — Hackathon Submission</p>
+        </div>
+    </footer>
+</body>
+</html>

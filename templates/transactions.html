@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transactions - QuaiScan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .monospace {
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 min-h-screen">
+    <!-- NAVBAR -->
+    <nav class="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex-shrink-0">
+                    <h1 class="text-2xl font-bold text-blue-600">QuaiScan</h1>
+                </div>
+                
+                <!-- Search Bar -->
+                <div class="flex-1 max-w-2xl mx-8">
+                    <input type="text" 
+                           placeholder="Search by address, transaction hash, or block..." 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                
+                <!-- Links -->
+                <div class="flex space-x-6">
+                    <a href="/" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">Home</a>
+                    <a href="/blocks" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">Blocks</a>
+                    <a href="/transactions" class="text-blue-600 font-medium transition-colors">Transactions</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HEADER -->
+    <section class="bg-gray-100 py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-gray-900">Transactions</h2>
+            <p class="text-gray-600 mt-2">Browse recent transactions on Quai Network</p>
+        </div>
+    </section>
+
+    <!-- TRANSACTIONS TABLE -->
+    <section class="py-8 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-semibold text-gray-900">Recent Transactions</h3>
+                <div class="text-sm text-gray-500">
+                    Showing latest {{ transactions|length }} transactions
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tx Hash</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Block</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">From</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">To</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Value</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Direction</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for tx in transactions %}
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm monospace">
+                                <a href="/tx/{{ tx.tx_hash }}" class="text-blue-600 hover:text-blue-800">
+                                    {{ tx.tx_hash[:10] }}...{{ tx.tx_hash[-8:] }}
+                                </a>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {% if tx.block_number %}
+                                    <a href="/block/{{ tx.block_number }}" class="text-blue-600 hover:text-blue-800">
+                                        {{ tx.block_number }}
+                                    </a>
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm monospace text-gray-500">
+                                {{ tx.from_address[:6] }}...{{ tx.from_address[-4:] }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm monospace text-gray-500">
+                                {{ tx.to_address[:6] }}...{{ tx.to_address[-4:] }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ "%.6f"|format((tx.value / 1e18) if tx.value else 0) }} QUAI
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                    {% if tx.direction == 'incoming' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                    {{ tx.direction }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">
+                                No transactions available
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination (Simple - can be extended) -->
+            {% if transactions %}
+            <div class="mt-6 flex justify-center">
+                <div class="text-sm text-gray-500">
+                    <a href="/transactions?page={{ page-1 if page > 1 else 1 }}" class="px-3 py-1 mr-2 bg-white border border-gray-300 rounded hover:bg-gray-50">Previous</a>
+                    <span class="px-3 py-1">Page {{ page }}</span>
+                    <a href="/transactions?page={{ page+1 }}" class="px-3 py-1 ml-2 bg-white border border-gray-300 rounded hover:bg-gray-50">Next</a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-gray-900 text-white py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p>QuaiScan — Hackathon Submission</p>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction {{ tx.tx_hash[:10] }}...{{ tx.tx_hash[-8:] }} - QuaiScan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .monospace {
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 min-h-screen">
+    <!-- NAVBAR -->
+    <nav class="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex-shrink-0">
+                    <h1 class="text-2xl font-bold text-blue-600">QuaiScan</h1>
+                </div>
+                
+                <!-- Search Bar -->
+                <div class="flex-1 max-w-2xl mx-8">
+                    <input type="text" 
+                           placeholder="Search by address, transaction hash, or block..." 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                
+                <!-- Links -->
+                <div class="flex space-x-6">
+                    <a href="/" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">Home</a>
+                    <a href="/blocks" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">Blocks</a>
+                    <a href="/transactions" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">Transactions</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HEADER -->
+    <section class="bg-gray-100 py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center space-x-2">
+                <a href="/transactions" class="text-blue-600 hover:text-blue-800">Transactions</a>
+                <span class="text-gray-500">/</span>
+                <span class="text-gray-900 font-semibold monospace">{{ tx.tx_hash[:10] }}...{{ tx.tx_hash[-8:] }}</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- TRANSACTION DETAILS -->
+    {% if tx %}
+    <section class="py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Transaction Details</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <div class="py-3 border-b border-gray-200">
+                            <span class="text-sm font-medium text-gray-500">Transaction Hash:</span>
+                            <span class="ml-3 text-sm monospace text-gray-900 break-all">{{ tx.tx_hash }}</span>
+                        </div>
+                        <div class="py-3 border-b border-gray-200">
+                            <span class="text-sm font-medium text-gray-500">Block Number:</span>
+                            {% if tx.block_number %}
+                                <a href="/block/{{ tx.block_number }}" class="ml-3 text-sm text-blue-600 hover:text-blue-800 font-medium">
+                                    {{ tx.block_number }}
+                                </a>
+                            {% else %}
+                                <span class="ml-3 text-sm text-gray-900">N/A</span>
+                            {% endif %}
+                        </div>
+                        <div class="py-3 border-b border-gray-200">
+                            <span class="text-sm font-medium text-gray-500">From:</span>
+                            <span class="ml-3 text-sm monospace text-gray-900 break-all">{{ tx.from_address }}</span>
+                        </div>
+                        <div class="py-3 border-b border-gray-200">
+                            <span class="text-sm font-medium text-gray-500">To:</span>
+                            <span class="ml-3 text-sm monospace text-gray-900 break-all">{{ tx.to_address }}</span>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="py-3 border-b border-gray-200">
+                            <span class="text-sm font-medium text-gray-500">Value:</span>
+                            <span class="ml-3 text-sm text-gray-900 font-semibold">
+                                {{ "%.6f"|format((tx.value / 1e18) if tx.value else 0) }} QUAI
+                            </span>
+                        </div>
+                        <div class="py-3 border-b border-gray-200">
+                            <span class="text-sm font-medium text-gray-500">Gas Used:</span>
+                            <span class="ml-3 text-sm text-gray-900">{{ "{:,}".format(tx.gas_used) if tx.gas_used else 'N/A' }}</span>
+                        </div>
+                        <div class="py-3 border-b border-gray-200">
+                            <span class="text-sm font-medium text-gray-500">Direction:</span>
+                            <span class="ml-3 inline-flex px-2 py-1 text-xs leading-5 font-semibold rounded-full 
+                                {% if tx.direction == 'incoming' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                {{ tx.direction }}
+                            </span>
+                        </div>
+                        <div class="py-3 border-b border-gray-200">
+                            <span class="text-sm font-medium text-gray-500">Timestamp:</span>
+                            <span class="ml-3 text-sm text-gray-900">{{ tx.timestamp[:19] if tx.timestamp else 'N/A' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ADDITIONAL INFO -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-semibold text-gray-900 mb-4">Additional Information</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="py-3">
+                        <span class="text-sm font-medium text-gray-500">Status:</span>
+                        <span class="ml-3 inline-flex px-2 py-1 text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                            Success
+                        </span>
+                    </div>
+                    
+                    <div class="py-3">
+                        <span class="text-sm font-medium text-gray-500">Type:</span>
+                        <span class="ml-3 text-sm text-gray-900">Transfer</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    {% else %}
+    <section class="py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="bg-white rounded-lg shadow-md p-6 text-center">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">Transaction Not Found</h2>
+                <p class="text-gray-600 mb-4">The requested transaction could not be found.</p>
+                <a href="/transactions" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                    Back to Transactions
+                </a>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- FOOTER -->
+    <footer class="bg-gray-900 text-white py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p>QuaiScan — Hackathon Submission</p>
+        </div>
+    </footer>
+</body>
+</html>
